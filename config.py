@@ -27,7 +27,7 @@ EXCHANGE = "binance"
 # 交易所 API 配置
 EXCHANGE_CONFIG = {
     "binance": {
-        "base_url": "https://api.binance.com",
+        "base_url": "https://data-api.binance.vision",
         "klines_endpoint": "/api/v3/klines",
         "symbol_format": "{symbol}",  # BTCUSDT
     },
