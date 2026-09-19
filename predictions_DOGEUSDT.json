@@ -1,0 +1,146 @@
+[
+    {
+        "timestamp": "2026-05-23T10:42:24.660547",
+        "symbol": "DOGEUSDT",
+        "price": 0.10167,
+        "trend_code": 0,
+        "confidence": 47.3,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-05-24T02:33:58.964939",
+        "symbol": "DOGEUSDT",
+        "price": 0.10273,
+        "trend_code": 2,
+        "confidence": 58.35,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-05-24T02:34:05.167155",
+        "symbol": "DOGEUSDT",
+        "price": 0.10265,
+        "trend_code": 0,
+        "confidence": 49.07,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-05-24T04:38:26.172563",
+        "symbol": "DOGEUSDT",
+        "price": 0.10389,
+        "trend_code": 2,
+        "confidence": 63.99,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-05-24T05:30:07.601308",
+        "symbol": "DOGEUSDT",
+        "price": 0.10367,
+        "trend_code": 0,
+        "confidence": 45.15,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-06-13T11:36:12.953766",
+        "symbol": "DOGEUSDT",
+        "price": 0.08629,
+        "trend_code": 2,
+        "confidence": 70.0,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-06-17T16:38:13.713398",
+        "symbol": "DOGEUSDT",
+        "price": 0.08616,
+        "trend_code": 0,
+        "confidence": 49.3,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-06-17T23:50:13.749128",
+        "symbol": "DOGEUSDT",
+        "price": 0.08718,
+        "trend_code": 2,
+        "confidence": 66.21,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-06-18T01:46:12.806340",
+        "symbol": "DOGEUSDT",
+        "price": 0.0871,
+        "trend_code": 0,
+        "confidence": 49.73,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-01T21:45:13.932861",
+        "symbol": "DOGEUSDT",
+        "price": 0.07197,
+        "trend_code": 2,
+        "confidence": 70.29,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-02T08:31:14.066446",
+        "symbol": "DOGEUSDT",
+        "price": 0.07191,
+        "trend_code": 0,
+        "confidence": 48.99,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-02T09:33:14.589652",
+        "symbol": "DOGEUSDT",
+        "price": 0.07265,
+        "trend_code": 2,
+        "confidence": 51.52,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-02T15:19:14.080200",
+        "symbol": "DOGEUSDT",
+        "price": 0.07242,
+        "trend_code": 0,
+        "confidence": 49.96,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-02T17:35:14.296352",
+        "symbol": "DOGEUSDT",
+        "price": 0.07323,
+        "trend_code": 2,
+        "confidence": 53.34,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-08T00:08:51.149148",
+        "symbol": "DOGEUSDT",
+        "price": 0.07502,
+        "trend_code": 0,
+        "confidence": 49.99,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-15T14:07:07.612221",
+        "symbol": "DOGEUSDT",
+        "price": 0.07448,
+        "trend_code": 2,
+        "confidence": 65.24,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-15T17:47:08.486609",
+        "symbol": "DOGEUSDT",
+        "price": 0.07405,
+        "trend_code": 0,
+        "confidence": 49.93,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-15T21:03:09.995944",
+        "symbol": "DOGEUSDT",
+        "price": 0.07498,
+        "trend_code": 2,
+        "confidence": 55.81,
+        "actual": null
+    }
+]

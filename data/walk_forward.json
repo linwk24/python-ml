@@ -1,0 +1,133 @@
+{
+  "symbol": "BTCUSDT",
+  "folds": [
+    {
+      "fold": 0,
+      "train_rows": 14000,
+      "test_rows": 2999,
+      "train_secs": 236,
+      "top_features": [
+        "high_low_ratio",
+        "ichimoku_kijun_sen",
+        "close_open_ratio",
+        "price_change_pct",
+        "macd_histogram"
+      ],
+      "常量基线": 0.3507835945315105,
+      "LSTM(17维x60步)": 0.40013337779259756,
+      "逻辑回归(17维x1)": 0.36845615205068355,
+      "逻辑回归(top5特征)": 0.3567855951983995,
+      "梯度提升树(17维x1)": 0.3674558186062021,
+      "baseline": 0.3507835945315105
+    },
+    {
+      "fold": 1,
+      "train_rows": 17000,
+      "test_rows": 2999,
+      "train_secs": 284,
+      "top_features": [
+        "close_open_ratio",
+        "price_change_pct",
+        "high_low_ratio",
+        "ichimoku_kijun_sen",
+        "ichimoku_tenkan_sen"
+      ],
+      "常量基线": 0.35578526175391795,
+      "LSTM(17维x60步)": 0.4274758252750917,
+      "逻辑回归(17维x1)": 0.41647215738579524,
+      "逻辑回归(top5特征)": 0.38979659886628876,
+      "梯度提升树(17维x1)": 0.3911303767922641,
+      "baseline": 0.35578526175391795
+    },
+    {
+      "fold": 2,
+      "train_rows": 20000,
+      "test_rows": 2999,
+      "train_secs": 334,
+      "top_features": [
+        "high_low_ratio",
+        "ichimoku_kijun_sen",
+        "price_change_pct",
+        "close_open_ratio",
+        "ichimoku_tenkan_sen"
+      ],
+      "常量基线": 0.3751250416805602,
+      "LSTM(17维x60步)": 0.41547182394131377,
+      "逻辑回归(17维x1)": 0.41213737912637544,
+      "逻辑回归(top5特征)": 0.40246748916305436,
+      "梯度提升树(17维x1)": 0.3844614871623875,
+      "baseline": 0.3751250416805602
+    },
+    {
+      "fold": 3,
+      "train_rows": 23000,
+      "test_rows": 2999,
+      "train_secs": 387,
+      "top_features": [
+        "ichimoku_kijun_sen",
+        "high_low_ratio",
+        "ma_ratio_5_20",
+        "price_change_pct",
+        "close_open_ratio"
+      ],
+      "常量基线": 0.34378126042014007,
+      "LSTM(17维x60步)": 0.4221407135711904,
+      "逻辑回归(17维x1)": 0.41813937979326443,
+      "逻辑回归(top5特征)": 0.41813937979326443,
+      "梯度提升树(17维x1)": 0.377459153051017,
+      "baseline": 0.34378126042014007
+    }
+  ],
+  "summary": {
+    "常量基线": {
+      "accuracy": 0.3563687895965322,
+      "majority_rate": 0.3563687895965322,
+      "edge_pp": 0.0,
+      "p_value": 0.5034385327708168,
+      "balanced_accuracy": 0.3333333333333333,
+      "n": 11996,
+      "folds_beating_baseline": 0,
+      "folds": 4
+    },
+    "LSTM(17维x60步)": {
+      "accuracy": 0.41630543514504836,
+      "majority_rate": 0.3563687895965322,
+      "edge_pp": 5.99,
+      "p_value": 4.0260333160794384e-42,
+      "balanced_accuracy": 0.4174848271246346,
+      "n": 11996,
+      "folds_beating_baseline": 4,
+      "folds": 4
+    },
+    "逻辑回归(17维x1)": {
+      "accuracy": 0.4038012670890297,
+      "majority_rate": 0.3563687895965322,
+      "edge_pp": 4.74,
+      "p_value": 3.2169517769752122e-27,
+      "balanced_accuracy": 0.39794436779416736,
+      "n": 11996,
+      "folds_beating_baseline": 4,
+      "folds": 4
+    },
+    "逻辑回归(top5特征)": {
+      "accuracy": 0.39179726575525176,
+      "majority_rate": 0.3563687895965322,
+      "edge_pp": 3.54,
+      "p_value": 4.553342247549126e-16,
+      "balanced_accuracy": 0.3852923719109514,
+      "n": 11996,
+      "folds_beating_baseline": 4,
+      "folds": 4
+    },
+    "梯度提升树(17维x1)": {
+      "accuracy": 0.3801267089029677,
+      "majority_rate": 0.3563687895965322,
+      "edge_pp": 2.38,
+      "p_value": 3.348334345546393e-08,
+      "balanced_accuracy": 0.37164307631834465,
+      "n": 11996,
+      "folds_beating_baseline": 4,
+      "folds": 4
+    }
+  }
+}

@@ -1,0 +1,66 @@
+[
+    {
+        "timestamp": "2026-09-04T00:54:41.314470",
+        "symbol": "ETHUSDT",
+        "price": 2495.0,
+        "trend_code": 0,
+        "confidence": 34.19,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-09-04T12:28:44.674567",
+        "symbol": "ETHUSDT",
+        "price": 2523.5,
+        "trend_code": 2,
+        "confidence": 36.72,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-09-04T12:32:42.990426",
+        "symbol": "ETHUSDT",
+        "price": 2521.2,
+        "trend_code": 0,
+        "confidence": 36.72,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-09-11T21:50:06.357440",
+        "symbol": "ETHUSDT",
+        "price": 2571.82,
+        "trend_code": 2,
+        "confidence": 36.78,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-09-11T23:54:07.143881",
+        "symbol": "ETHUSDT",
+        "price": 2568.83,
+        "trend_code": 0,
+        "confidence": 35.86,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-09-15T04:20:43.453400",
+        "symbol": "ETHUSDT",
+        "price": 2595.67,
+        "trend_code": 2,
+        "confidence": 38.87,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-09-15T04:58:43.711778",
+        "symbol": "ETHUSDT",
+        "price": 2568.23,
+        "trend_code": 0,
+        "confidence": 38.57,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-09-19T00:13:27.180579",
+        "symbol": "ETHUSDT",
+        "price": 2594.67,
+        "trend_code": 2,
+        "confidence": 35.76,
+        "actual": null
+    }
+]

@@ -1,0 +1,29 @@
+# ── Python 环境（可重建：bash scripts/setup.sh）──
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# ── 训练产物（可重建：scripts/train_multi.py，或 API 的 /train）──
+# 模型权重是二进制且体积大；仓库只保留源码与评估结果
+models/models/
+
+# ── 运行时日志（保留在本地）──
+logs/
+data/*.log
+
+# ── 行情缓存与临时目录（脚本会按需重新下载）──
+data/*_1h.json
+data/lb_*.json
+data/ms_*.json
+data/wf_*.json
+data/pnl_ckpt_*.json
+data/snap/
+data/*.tmp
+.verify/
+
+# ── 编辑器 / 系统 ──
+.DS_Store
+.idea/
+.vscode/

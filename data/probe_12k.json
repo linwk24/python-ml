@@ -1,0 +1,303 @@
+{
+  "symbol": "BTCUSDT",
+  "rows": 12000,
+  "fit_rows": 8400,
+  "fit_ratio": 0.7,
+  "results": {
+    "dir_h1_3c": {
+      "n": 3599,
+      "accuracy": 0.39788830230619615,
+      "majority_class": 2,
+      "majority_rate": 0.33953876076687967,
+      "balanced_accuracy": 0.4011292466159955,
+      "class_counts": [
+        1217,
+        1160,
+        1222
+      ],
+      "recalls": [
+        0.1397,
+        0.6103,
+        0.4534
+      ],
+      "p_value_vs_majority": 1.600494766800779e-13,
+      "beats_baseline": true,
+      "edge_pp": 5.83,
+      "chunks": [
+        {
+          "n": 900,
+          "accuracy": 0.3667,
+          "majority_rate": 0.34
+        },
+        {
+          "n": 900,
+          "accuracy": 0.4,
+          "majority_rate": 0.3922
+        },
+        {
+          "n": 900,
+          "accuracy": 0.4133,
+          "majority_rate": 0.3744
+        },
+        {
+          "n": 899,
+          "accuracy": 0.4116,
+          "majority_rate": 0.3404
+        }
+      ],
+      "train_seq": 7089,
+      "holdout_seq": 3599,
+      "desc": "H=1 三分类(涨/平/跌 ±0.1%) [生产现状]",
+      "H": 1
+    },
+    "dir_h1": {
+      "n": 2439,
+      "accuracy": 0.5116851168511685,
+      "majority_class": 1,
+      "majority_rate": 0.5010250102501025,
+      "balanced_accuracy": 0.5108988591785494,
+      "class_counts": [
+        1217,
+        1222
+      ],
+      "recalls": [
+        0.1274,
+        0.8944
+      ],
+      "p_value_vs_majority": 0.15087640019247048,
+      "beats_baseline": false,
+      "edge_pp": 1.07,
+      "chunks": [
+        {
+          "n": 610,
+          "accuracy": 0.5,
+          "majority_rate": 0.5148
+        },
+        {
+          "n": 610,
+          "accuracy": 0.5148,
+          "majority_rate": 0.5262
+        },
+        {
+          "n": 610,
+          "accuracy": 0.5279,
+          "majority_rate": 0.5115
+        },
+        {
+          "n": 609,
+          "accuracy": 0.5041,
+          "majority_rate": 0.5041
+        }
+      ],
+      "train_seq": 5071,
+      "holdout_seq": 2439,
+      "desc": "H=1 二分类 涨/跌",
+      "H": 1
+    },
+    "dir_h12": {
+      "n": 3255,
+      "accuracy": 0.5364055299539171,
+      "majority_class": 1,
+      "majority_rate": 0.5259600614439324,
+      "balanced_accuracy": 0.5281950518167667,
+      "class_counts": [
+        1543,
+        1712
+      ],
+      "recalls": [
+        0.3701,
+        0.6863
+      ],
+      "p_value_vs_majority": 0.11978367387741569,
+      "beats_baseline": false,
+      "edge_pp": 1.04,
+      "nonoverlap": {
+        "n": 276,
+        "accuracy": 0.5181159420289855,
+        "majority_rate": 0.5217391304347826,
+        "balanced_accuracy": 0.5107323232323232,
+        "p_value_vs_majority": 0.572029153662319,
+        "edge_pp": -0.36,
+        "beats_baseline": false
+      },
+      "chunks": [
+        {
+          "n": 814,
+          "accuracy": 0.5405,
+          "majority_rate": 0.5061
+        },
+        {
+          "n": 814,
+          "accuracy": 0.4767,
+          "majority_rate": 0.5111
+        },
+        {
+          "n": 814,
+          "accuracy": 0.5823,
+          "majority_rate": 0.5467
+        },
+        {
+          "n": 813,
+          "accuracy": 0.5461,
+          "majority_rate": 0.5523
+        }
+      ],
+      "train_seq": 6485,
+      "holdout_seq": 3255,
+      "desc": "H=12 二分类 涨/跌",
+      "H": 12
+    },
+    "vol_regime": {
+      "n": 3588,
+      "accuracy": 0.5465440356744704,
+      "majority_class": 0,
+      "majority_rate": 0.5250836120401338,
+      "balanced_accuracy": 0.5251730659968302,
+      "class_counts": [
+        1884,
+        1704
+      ],
+      "recalls": [
+        0.9512,
+        0.0992
+      ],
+      "p_value_vs_majority": 0.005243198894907931,
+      "beats_baseline": true,
+      "edge_pp": 2.15,
+      "nonoverlap": {
+        "n": 299,
+        "accuracy": 0.5484949832775919,
+        "majority_rate": 0.5183946488294314,
+        "balanced_accuracy": 0.5329749103942653,
+        "p_value_vs_majority": 0.16261462416521016,
+        "edge_pp": 3.01,
+        "beats_baseline": false
+      },
+      "chunks": [
+        {
+          "n": 897,
+          "accuracy": 0.5017,
+          "majority_rate": 0.5128
+        },
+        {
+          "n": 897,
+          "accuracy": 0.5975,
+          "majority_rate": 0.5039
+        },
+        {
+          "n": 897,
+          "accuracy": 0.5853,
+          "majority_rate": 0.5853
+        },
+        {
+          "n": 897,
+          "accuracy": 0.5017,
+          "majority_rate": 0.5017
+        }
+      ],
+      "train_seq": 6926,
+      "holdout_seq": 3588,
+      "desc": "H=12 波动率状态(高于历史中位数?)",
+      "H": 12
+    },
+    "breakout": {
+      "n": 3588,
+      "accuracy": 0.5875139353400223,
+      "majority_class": 0,
+      "majority_rate": 0.5161649944258639,
+      "balanced_accuracy": 0.599205243304038,
+      "class_counts": [
+        1852,
+        1736
+      ],
+      "recalls": [
+        0.2376,
+        0.9608
+      ],
+      "p_value_vs_majority": 5.506441618623676e-18,
+      "beats_baseline": true,
+      "edge_pp": 7.13,
+      "nonoverlap": {
+        "n": 299,
+        "accuracy": 0.6254180602006689,
+        "majority_rate": 0.5016722408026756,
+        "balanced_accuracy": 0.6265548098434005,
+        "p_value_vs_majority": 1.1023767649676897e-05,
+        "edge_pp": 12.37,
+        "beats_baseline": true
+      },
+      "chunks": [
+        {
+          "n": 897,
+          "accuracy": 0.602,
+          "majority_rate": 0.5273
+        },
+        {
+          "n": 897,
+          "accuracy": 0.5897,
+          "majority_rate": 0.5474
+        },
+        {
+          "n": 897,
+          "accuracy": 0.5708,
+          "majority_rate": 0.5229
+        },
+        {
+          "n": 897,
+          "accuracy": 0.5875,
+          "majority_rate": 0.5128
+        }
+      ],
+      "train_seq": 7080,
+      "holdout_seq": 3588,
+      "desc": "H=12 突破(未来最高价 > 前12根最高价?)",
+      "H": 12
+    },
+    "_shuffle_control_dir_h1_3c": {
+      "n": 3599,
+      "accuracy": 0.3378716310086135,
+      "majority_class": 2,
+      "majority_rate": 0.33953876076687967,
+      "balanced_accuracy": 0.33284314186952346,
+      "class_counts": [
+        1217,
+        1160,
+        1222
+      ],
+      "recalls": [
+        0.8406,
+        0.0,
+        0.1579
+      ],
+      "p_value_vs_majority": 0.5897915518258823,
+      "beats_baseline": false,
+      "edge_pp": -0.17,
+      "chunks": [
+        {
+          "n": 900,
+          "accuracy": 0.3289,
+          "majority_rate": 0.34
+        },
+        {
+          "n": 900,
+          "accuracy": 0.3878,
+          "majority_rate": 0.3922
+        },
+        {
+          "n": 900,
+          "accuracy": 0.3089,
+          "majority_rate": 0.3744
+        },
+        {
+          "n": 899,
+          "accuracy": 0.3259,
+          "majority_rate": 0.3404
+        }
+      ],
+      "train_seq": 7089,
+      "holdout_seq": 3599,
+      "desc": "H=1 三分类(涨/平/跌 ±0.1%) [生产现状]",
+      "H": 1
+    }
+  }
+}

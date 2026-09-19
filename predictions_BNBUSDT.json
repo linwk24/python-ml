@@ -1,0 +1,122 @@
+[
+    {
+        "timestamp": "2026-05-23T10:42:30.030186",
+        "symbol": "BNBUSDT",
+        "price": 650.12,
+        "trend_code": 0,
+        "confidence": 49.67,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-05-24T04:38:27.107324",
+        "symbol": "BNBUSDT",
+        "price": 657.04,
+        "trend_code": 2,
+        "confidence": 51.78,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-05-24T09:02:02.356650",
+        "symbol": "BNBUSDT",
+        "price": 656.7,
+        "trend_code": 0,
+        "confidence": 50.0,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-05-25T20:10:03.430459",
+        "symbol": "BNBUSDT",
+        "price": 663.27,
+        "trend_code": 2,
+        "confidence": 50.88,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-05-26T01:15:25.975352",
+        "symbol": "BNBUSDT",
+        "price": 662.37,
+        "trend_code": 0,
+        "confidence": 48.78,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-06-01T08:00:05.875751",
+        "symbol": "BNBUSDT",
+        "price": 710.55,
+        "trend_code": 2,
+        "confidence": 50.1,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-06-01T09:16:05.433693",
+        "symbol": "BNBUSDT",
+        "price": 708.83,
+        "trend_code": 0,
+        "confidence": 49.84,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-06-01T17:45:06.136442",
+        "symbol": "BNBUSDT",
+        "price": 719.38,
+        "trend_code": 2,
+        "confidence": 52.99,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-06-01T17:54:17.785347",
+        "symbol": "BNBUSDT",
+        "price": 716.35,
+        "trend_code": 0,
+        "confidence": 49.9,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-07T23:44:57.215506",
+        "symbol": "BNBUSDT",
+        "price": 583.64,
+        "trend_code": 2,
+        "confidence": 50.15,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-08T02:50:57.804679",
+        "symbol": "BNBUSDT",
+        "price": 583.3,
+        "trend_code": 0,
+        "confidence": 49.57,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-12T23:34:10.917685",
+        "symbol": "BNBUSDT",
+        "price": 580.49,
+        "trend_code": 2,
+        "confidence": 50.7,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-13T06:00:41.974547",
+        "symbol": "BNBUSDT",
+        "price": 574.65,
+        "trend_code": 0,
+        "confidence": 49.82,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-15T20:55:10.335912",
+        "symbol": "BNBUSDT",
+        "price": 583.8,
+        "trend_code": 2,
+        "confidence": 50.06,
+        "actual": null
+    },
+    {
+        "timestamp": "2026-07-15T20:59:09.666732",
+        "symbol": "BNBUSDT",
+        "price": 582.86,
+        "trend_code": 0,
+        "confidence": 49.96,
+        "actual": null
+    }
+]

@@ -1,0 +1,419 @@
+{
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT"
+  ],
+  "results": {
+    "BTCUSDT": {
+      "常量基线": [
+        {
+          "n": 1999,
+          "accuracy": 0.36068034017008505,
+          "majority_rate": 0.36068034017008505,
+          "edge_pp": 0.0,
+          "balanced_accuracy": 0.3333333333333333,
+          "p_value": 0.5084270772072292
+        },
+        {
+          "n": 1999,
+          "accuracy": 0.3461730865432716,
+          "majority_rate": 0.3461730865432716,
+          "edge_pp": 0.0,
+          "balanced_accuracy": 0.3333333333333333,
+          "p_value": 0.5084152125138348
+        }
+      ],
+      "none": [
+        {
+          "n": 1999,
+          "accuracy": 0.39869934967483744,
+          "majority_rate": 0.36068034017008505,
+          "edge_pp": 3.8,
+          "balanced_accuracy": 0.39944025383053966,
+          "p_value": 0.0002378633794870968,
+          "train_secs": 122,
+          "mi_top": []
+        },
+        {
+          "n": 1999,
+          "accuracy": 0.4222111055527764,
+          "majority_rate": 0.3461730865432716,
+          "edge_pp": 7.6,
+          "balanced_accuracy": 0.4194606841519117,
+          "p_value": 1.1021284352486185e-12,
+          "train_secs": 148,
+          "mi_top": []
+        }
+      ],
+      "mutual_info": [
+        {
+          "n": 1999,
+          "accuracy": 0.38519259629814906,
+          "majority_rate": 0.36068034017008505,
+          "edge_pp": 2.45,
+          "balanced_accuracy": 0.39682363268249815,
+          "p_value": 0.012204945796067944,
+          "train_secs": 129,
+          "mi_top": [
+            [
+              "ichimoku_kijun_sen",
+              0.029811585165467225
+            ],
+            [
+              "price_change_pct",
+              0.02492420685004304
+            ],
+            [
+              "close_open_ratio",
+              0.024724494847979228
+            ],
+            [
+              "high_low_ratio",
+              0.023880637086065803
+            ],
+            [
+              "ichimoku_tenkan_sen",
+              0.01754457626417083
+            ]
+          ]
+        },
+        {
+          "n": 1999,
+          "accuracy": 0.4207103551775888,
+          "majority_rate": 0.3461730865432716,
+          "edge_pp": 7.45,
+          "balanced_accuracy": 0.4162811947039134,
+          "p_value": 2.9176743343869757e-12,
+          "train_secs": 168,
+          "mi_top": [
+            [
+              "high_low_ratio",
+              0.034266822463181246
+            ],
+            [
+              "ichimoku_kijun_sen",
+              0.028038548293818133
+            ],
+            [
+              "price_change_pct",
+              0.02456995771720827
+            ],
+            [
+              "close_open_ratio",
+              0.02402610904727176
+            ],
+            [
+              "bb_width",
+              0.018297230038099466
+            ]
+          ]
+        }
+      ]
+    },
+    "ETHUSDT": {
+      "常量基线": [
+        {
+          "n": 1999,
+          "accuracy": 0.37868934467233617,
+          "majority_rate": 0.37868934467233617,
+          "edge_pp": 0.0,
+          "balanced_accuracy": 0.3333333333333333,
+          "p_value": 0.5084529867179838
+        },
+        {
+          "n": 1999,
+          "accuracy": 0.37018509254627313,
+          "majority_rate": 0.37018509254627313,
+          "edge_pp": 0.0,
+          "balanced_accuracy": 0.3333333333333333,
+          "p_value": 0.5084392469333555
+        }
+      ],
+      "none": [
+        {
+          "n": 1999,
+          "accuracy": 0.38969484742371185,
+          "majority_rate": 0.37868934467233617,
+          "edge_pp": 1.1,
+          "balanced_accuracy": 0.3677429394034701,
+          "p_value": 0.1607433678411598,
+          "train_secs": 128,
+          "mi_top": []
+        },
+        {
+          "n": 1999,
+          "accuracy": 0.375687843921961,
+          "majority_rate": 0.37018509254627313,
+          "edge_pp": 0.55,
+          "balanced_accuracy": 0.38666102812646846,
+          "p_value": 0.3128157653938848,
+          "train_secs": 148,
+          "mi_top": []
+        }
+      ],
+      "mutual_info": [
+        {
+          "n": 1999,
+          "accuracy": 0.36418209104552274,
+          "majority_rate": 0.37868934467233617,
+          "edge_pp": -1.45,
+          "balanced_accuracy": 0.3388921370694032,
+          "p_value": 0.9133860033365805,
+          "train_secs": 128,
+          "mi_top": [
+            [
+              "cci",
+              0.012229268260658843
+            ],
+            [
+              "ichimoku_kijun_sen",
+              0.01178145396601038
+            ],
+            [
+              "mfi",
+              0.011003051053904533
+            ],
+            [
+              "ichimoku_tenkan_sen",
+              0.010709561895103414
+            ],
+            [
+              "ma_ratio_10_60",
+              0.01021704684115532
+            ]
+          ]
+        },
+        {
+          "n": 1999,
+          "accuracy": 0.37318659329664833,
+          "majority_rate": 0.37018509254627313,
+          "edge_pp": 0.3,
+          "balanced_accuracy": 0.38333841393148044,
+          "p_value": 0.3987324606651405,
+          "train_secs": 148,
+          "mi_top": [
+            [
+              "bb_width",
+              0.01475058405342633
+            ],
+            [
+              "high_low_ratio",
+              0.01376971558174267
+            ],
+            [
+              "cci",
+              0.01065333644363009
+            ],
+            [
+              "ichimoku_kijun_sen",
+              0.010335994696455186
+            ],
+            [
+              "ichimoku_tenkan_sen",
+              0.008483808892683298
+            ]
+          ]
+        }
+      ]
+    },
+    "SOLUSDT": {
+      "常量基线": [
+        {
+          "n": 1999,
+          "accuracy": 0.4042021010505253,
+          "majority_rate": 0.4042021010505253,
+          "edge_pp": 0.0,
+          "balanced_accuracy": 0.3333333333333333,
+          "p_value": 0.5085097822783051
+        },
+        {
+          "n": 1999,
+          "accuracy": 0.3891945972986493,
+          "majority_rate": 0.3891945972986493,
+          "edge_pp": 0.0,
+          "balanced_accuracy": 0.3333333333333333,
+          "p_value": 0.508473583358118
+        }
+      ],
+      "none": [
+        {
+          "n": 1999,
+          "accuracy": 0.38469234617308656,
+          "majority_rate": 0.4042021010505253,
+          "edge_pp": -1.95,
+          "balanced_accuracy": 0.3256850842316936,
+          "p_value": 0.9643645861208611,
+          "train_secs": 127,
+          "mi_top": []
+        },
+        {
+          "n": 1999,
+          "accuracy": 0.3791895947973987,
+          "majority_rate": 0.3891945972986493,
+          "edge_pp": -1.0,
+          "balanced_accuracy": 0.33852793186565094,
+          "p_value": 0.8264431588832291,
+          "train_secs": 146,
+          "mi_top": []
+        }
+      ],
+      "mutual_info": [
+        {
+          "n": 1999,
+          "accuracy": 0.3876938469234617,
+          "majority_rate": 0.4042021010505253,
+          "edge_pp": -1.65,
+          "balanced_accuracy": 0.32780869281896746,
+          "p_value": 0.9368511023997368,
+          "train_secs": 128,
+          "mi_top": [
+            [
+              "cci",
+              0.012363014060012167
+            ],
+            [
+              "rsi",
+              0.007580389889849881
+            ],
+            [
+              "adx",
+              0.007055960499221747
+            ],
+            [
+              "price_change_pct",
+              0.00670066433181038
+            ],
+            [
+              "ma_ratio_10_60",
+              0.006576871279361907
+            ]
+          ]
+        },
+        {
+          "n": 1999,
+          "accuracy": 0.35467733866933465,
+          "majority_rate": 0.3891945972986493,
+          "edge_pp": -3.45,
+          "balanced_accuracy": 0.33785673645957576,
+          "p_value": 0.9993251683841619,
+          "train_secs": 148,
+          "mi_top": [
+            [
+              "price_change_pct",
+              0.011769505624270815
+            ],
+            [
+              "high_low_ratio",
+              0.005548795279643581
+            ],
+            [
+              "stoch_d",
+              0.0050960360876133315
+            ],
+            [
+              "cci",
+              0.004823834854970732
+            ],
+            [
+              "close_open_ratio",
+              0.004120967834105427
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "summary": {
+    "BTCUSDT|常量基线": {
+      "accuracy": 0.35342671335667836,
+      "majority_rate": 0.35342671335667836,
+      "edge_pp": 0.0,
+      "p_value": 0.5059541974339679,
+      "balanced_accuracy": 0.3333333333333333,
+      "n": 3998,
+      "folds_beating_baseline": 0,
+      "folds": 2
+    },
+    "BTCUSDT|none": {
+      "accuracy": 0.41045522761380693,
+      "majority_rate": 0.35342671335667836,
+      "edge_pp": 5.7,
+      "p_value": 4.7563779921526385e-14,
+      "balanced_accuracy": 0.40945046899122567,
+      "n": 3998,
+      "folds_beating_baseline": 2,
+      "folds": 2
+    },
+    "BTCUSDT|mutual_info": {
+      "accuracy": 0.40295147573786894,
+      "majority_rate": 0.35342671335667836,
+      "edge_pp": 4.95,
+      "p_value": 4.778050123531626e-11,
+      "balanced_accuracy": 0.40655241369320577,
+      "n": 3998,
+      "folds_beating_baseline": 2,
+      "folds": 2
+    },
+    "ETHUSDT|常量基线": {
+      "accuracy": 0.3744372186093047,
+      "majority_rate": 0.3744372186093047,
+      "edge_pp": 0.0,
+      "p_value": 0.5059723628593682,
+      "balanced_accuracy": 0.3333333333333333,
+      "n": 3998,
+      "folds_beating_baseline": 0,
+      "folds": 2
+    },
+    "ETHUSDT|none": {
+      "accuracy": 0.3826913456728364,
+      "majority_rate": 0.3744372186093047,
+      "edge_pp": 0.83,
+      "p_value": 0.14414915310616314,
+      "balanced_accuracy": 0.3772019837649693,
+      "n": 3998,
+      "folds_beating_baseline": 2,
+      "folds": 2
+    },
+    "ETHUSDT|mutual_info": {
+      "accuracy": 0.36868434217108553,
+      "majority_rate": 0.3744372186093047,
+      "edge_pp": -0.58,
+      "p_value": 0.7785670168770897,
+      "balanced_accuracy": 0.36111527550044187,
+      "n": 3998,
+      "folds_beating_baseline": 1,
+      "folds": 2
+    },
+    "SOLUSDT|常量基线": {
+      "accuracy": 0.3966983491745873,
+      "majority_rate": 0.3966983491745873,
+      "edge_pp": 0.0,
+      "p_value": 0.5060041356101153,
+      "balanced_accuracy": 0.3333333333333333,
+      "n": 3998,
+      "folds_beating_baseline": 0,
+      "folds": 2
+    },
+    "SOLUSDT|none": {
+      "accuracy": 0.3819409704852426,
+      "majority_rate": 0.3966983491745873,
+      "edge_pp": -1.48,
+      "p_value": 0.9729890833468121,
+      "balanced_accuracy": 0.3321065080486723,
+      "n": 3998,
+      "folds_beating_baseline": 0,
+      "folds": 2
+    },
+    "SOLUSDT|mutual_info": {
+      "accuracy": 0.3711855927963982,
+      "majority_rate": 0.3966983491745873,
+      "edge_pp": -2.55,
+      "p_value": 0.9995588011139276,
+      "balanced_accuracy": 0.3328327146392716,
+      "n": 3998,
+      "folds_beating_baseline": 0,
+      "folds": 2
+    }
+  }
+}
