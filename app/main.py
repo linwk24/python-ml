@@ -15,6 +15,7 @@ from models.enhanced_lstm import EnhancedLSTMPredictor, MIN_KLINES_FOR_PREDICT
 from models.lstm_model import get_sample_klines
 from services.self_learning_manager import SelfLearningManager
 from services.signal_reversal import check_signal_reversal, effective_trend
+from services.live_price import build_live_block
 from config import (
     drop_unclosed_klines,
     fetch_klines,
@@ -76,12 +77,17 @@ def fetch_kline_data(
     interval: str = "1h",
     limit: int = DEFAULT_PREDICT_KLINES,
     drop_unclosed: bool = True,
+    return_forming: bool = False,
 ):
     """获取 K 线数据（支持多交易所，统一输出 Binance 格式）
 
     ``drop_unclosed=True``（默认）会丢弃尚未收盘的当前 K 线：训练只见过完整 K 线，
     拿半根去做推理会造成 train/serve skew（详见 config.drop_unclosed_klines）。
     原始行情导出（/klines）可显式传 False 以包含实时半根。
+
+    ``return_forming=True`` 时返回 ``(klines, forming_bar)``：``forming_bar`` 是被丢弃的
+    那根未收盘 K 线（没有则 None）。**它只供仓位/风控层取实时价用，绝不可拼回 klines
+    再喂给模型**。这样做到零额外延迟 —— 行情本来就已经取到了，只是此前直接丢掉。
 
     取数窗口按 **周期** 计算（此前硬编码为小时）：Binance 从 startTime 起向后返回 limit 根，
     所以窗口算错会同时错两头 —— 周期比 1h 细时拿到的是几天前的陈旧数据（1m 实测滞后 98 小时），
@@ -119,13 +125,19 @@ def fetch_kline_data(
         klines = klines[-limit:]  # 只保留最新的 limit 根
 
         dropped = False
+        forming_bar = None
         if drop_unclosed:
+            forming_bar = klines[-1] if klines else None
             klines, dropped = drop_unclosed_klines(klines, interval_ms)
+            if not dropped:
+                forming_bar = None   # 没丢任何东西，说明最后一根本来就已收盘
 
         print(
             f"获取到 {len(klines)} 条 K线数据 (周期 {interval}"
             f"{', 已丢弃未收盘的当前 K 线' if dropped else ''})"
         )
+        if return_forming:
+            return klines, forming_bar
         return klines
 
     except Exception as e:
@@ -237,10 +249,15 @@ async def predict_post(request: PredictRequest):
             "success": True,
             "symbol": request.symbol,
             "current_price": klines[-1][4] if klines else None,
+            # 说明 current_price 的口径，避免被当成"现价"（见下面的 live 块）
+            "current_price_basis": PRICE_BASIS_CLOSED_BAR,
             "prediction": prediction,
             "feature_weights": weights
         }
         result.update(build_signal_block(klines, prediction))
+        # POST 的 klines 由调用方提供、不含周期信息，与 wrap_predict 一样按 1h 处理。
+        # 调用方给的 klines 里可能已含未收盘那根，这里无法可靠识别，故单独取一次实时价。
+        result.update(build_live_block(request.symbol, "1h"))
         return result
     except HTTPException:
         raise
@@ -251,7 +268,8 @@ async def predict_post(request: PredictRequest):
 async def predict_get(symbol: str = Query("BTCUSDT"), interval: str = Query("1h")):
     """预测趋势（GET 方式 - 集成记录）"""
     try:
-        klines = fetch_kline_data(symbol, interval, DEFAULT_PREDICT_KLINES)
+        klines, forming_bar = fetch_kline_data(
+            symbol, interval, DEFAULT_PREDICT_KLINES, return_forming=True)
         manager = get_manager(symbol)
         
         # 使用 wrap_predict 实现：预测 + 记录（记录 interval 便于闭环按视界核对）
@@ -268,15 +286,23 @@ async def predict_get(symbol: str = Query("BTCUSDT"), interval: str = Query("1h"
             "symbol": symbol,
             "interval": interval,
             "current_price": current_price,
+            # 说明 current_price 的口径，避免被当成"现价"（见下面的 live 块）
+            "current_price_basis": PRICE_BASIS_CLOSED_BAR,
             "prediction": prediction,
             "feature_weights": weights
         }
         result.update(build_signal_block(klines, prediction))
+        result.update(build_live_block(symbol, interval, forming_bar))
         return result
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"预测失败: {str(e)}")
+
+
+# current_price 的口径声明：它是**最后一根已收盘 K 线**的收盘价，不是实时价。
+# 线上实测过它滞后 0~59 分钟（1h 周期）；调用方若拿它做实时判断，在瀑布行情里会被误导。
+PRICE_BASIS_CLOSED_BAR = "last_closed_bar_close"
 
 
 def build_signal_block(klines: list, prediction: dict) -> dict:

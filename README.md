@@ -103,9 +103,60 @@ GET /self-learn?symbol=BTCUSDT&interval=1h   # 手动触发一轮自我学习巡
     "price_change_pct": "+0.06%",
     "message": "近 1 根 K 线价差 +0.06% 未超过阈值 0.10%，维持模型方向（基准 81,586.02 → 现价 81,636.01）"
   },
-  "feature_weights": [ { "name": "ma_ratio_5_20", "weight": 0.062 } ]
+  "feature_weights": [ { "name": "ma_ratio_5_20", "weight": 0.062 } ],
+  "current_price_basis": "last_closed_bar_close",
+  "live": {
+    "price": 81248.03,
+    "as_of_ms": 1789931116451,
+    "source": "binance_forming_kline",
+    "for_model": false,
+    "note": "实时价，仅供仓位/风控层使用；模型输入始终只用已收盘 K 线",
+    "forming_bar": {
+      "open_ms": 1789930800000, "open": 81036.0, "high": 81121.69,
+      "low": 81036.0, "close": 81248.03, "volume": 24.01,
+      "elapsed_minutes": 5.29, "interval_ms": 3600000,
+      "complete": false, "progress": 0.088
+    },
+    "error": null,
+    "enabled": true
+  }
 }
 ```
+
+### 两条独立通路：模型用收盘价，仓位层用实时价
+
+这是本项目最重要的一条架构约束，**不要合并它们**：
+
+```
+通路 A（模型）  klines = fetch(..., drop_unclosed=True)   ← 只用已收盘 K 线
+                prediction = model(klines)                  ← 一个字段都不改
+
+通路 B（仓位）  live.price                                  ← 实时价标量
+                position_manager.step(live.price, effective_signal)
+```
+
+**为什么不能把"正在走的那根"拼进模型输入**（实测，`experiments/partial_bar_probe.py`）：
+
+| 半根走到 | 中位振幅 `high_low_ratio` | 相对同一批小时的完整 bar |
+|---|---|---|
+| 完整 60 分钟 | 0.00366 | 100% |
+| 45 分钟 | 0.00358 | 97.8% |
+| 30 分钟 | 0.00247 | **67.5%** |
+| 15 分钟 | 0.00193 | **52.7%** |
+
+半根 K 线的振幅被**系统性压缩**（模型训练里每根都是完整的 60 分钟），这是有方向的偏差
+——会让模型系统性低估波动，而不是随机噪声；`high_low_ratio` 恰好在极端行情 OOD 排序里列第三。
+实测**方向被改变的比例 13.3%**（83 样本，95% 区间 [7.6%, 22.2%]），含完整反向；根因是模型
+概率极平（约 35/31/34，仅略高于均匀分布 33.3），argmax 本就由噪声主导。
+
+**为什么仓位层必须用实时价**：它要算的是未实现盈亏和止损，输入是一维的**价格**，
+没有训练分布问题。反过来，`current_price` 是**最后一根已收盘 K 线的收盘价**，
+实测滞后 0~59 分钟（1h 周期）——拿它做实时判断，在瀑布行情里会被误导。这也是
+`current_price_basis` 字段存在的原因。
+
+取不到实时价时 `live.price` 为 `null` 且 `live.error` 非空；**不要**把 `null` 当 0 用
+（`services.live_price.position_guard()` 就是给这个用的）。用 `LIVE_PRICE_ENABLED=false`
+可以关掉这次额外的 HTTP 往返。
 
 ### 字段语义（务必按这里理解）
 
@@ -120,6 +171,9 @@ GET /self-learn?symbol=BTCUSDT&interval=1h   # 手动触发一轮自我学习巡
 | `effective_signal` | **下游应当采用的权威方向**（`source` 标明来自 `model` 还是 `signal_reversal`）。 |
 | `signal_reversal.applied` | 反转建议是否真的覆盖了模型输出（默认配置为 `false`，只给建议）。 |
 | `signal_reversal.message` | 人类可读结论，**含基准价与现价**（按价格量级自适应小数位：BTC 两位带千分位、DOGE 六位），便于直接肉眼核对用的是哪两根 K 线。 |
+| `current_price_basis` | 恒为 `"last_closed_bar_close"`：声明 `current_price` 是**最后一根已收盘 K 线**的收盘价，不是实时价。 |
+| `live.price` | **实时价**（正在走那根的最新成交价）。仅供仓位/风控层使用，`live.for_model` 恒为 `false`。取不到时为 `null`。 |
+| `live.forming_bar` | 正在走的那根的进度：`elapsed_minutes`/`progress`/`complete` 以及 OHLCV 快照。**不要拼进模型输入**（原因见上文实测）。 |
 
 `signal_reversal.message` 的五种取值（阈值默认 0.10%，回溯默认 1 根，基准恒为**本次预测所用 K 线的上一根**，不是预测记录里的历史价）：
 
@@ -396,6 +450,25 @@ BTC 在 5bp 下的费用因子是 `0.9995^2190 ≈ 0.334`，把 +138% 的毛收�
 因此下一步的方向不是换模型，而是**降换手**：滞后/最短持有期（注意：之前因为"伤准确率"被我
 关闭的 `TREND_MANAGER_ENABLED` 状态机，正是为抑制抖动设计的，应当在 P&L 口径下重新评估）、
 只在高确信度时交易、或拉长视界让每笔的边际收益大于手续费。
+
+### 极端行情下的行为，以及"仓位能不能被避免"（实验结论）
+
+一组针对"已持有多仓时遇到暴跌"的实测。全部复用 `data/pnl_backtest.json` 的 OOS 逐 bar 产物，
+或走生产同一条代码路径，**没有重新训练**。
+
+| 脚本 | 回答的问题 | 关键结论 |
+|---|---|---|
+| `experiments/shock_response.py` | 冲击 K 线上模型的事前方向准不准 | 合并三币种：极端 1% 桶事前命中 **45.7%** vs 基线 50.9%（z=−1.91）；\|涨跌\|≥2% 桶 **45.8%**（z=−2.38）。**冲击时"给方向"的比例 93.6% 反而高于平时 85.7%** —— 模型在极端行情下不收手，更爱表态 |
+| `experiments/shock_ood.py` | 冲击把模型输入推到训练分布之外多远 | 极端 1% K 线 **100%** 至少一个特征 >3σ（平时 4.2%），**42.5%** >5σ；平均 3.23 个特征越界（平时 0.07）。最远的是 `price_change_pct`/`close_open_ratio`/`high_low_ratio` |
+| `experiments/shock_replay.py` | 真实暴跌逐时点回放 `/predict` 会返回什么 | 2026-09-04 BTC −2.18% 那根：**盘中 59 分钟完全看不见**；收盘后模型 **仍然看涨且置信度从 38.54 升到 44.93**（暴跌把中性概率从 23.2 砍到 11.8）；反转建议只活 1 根 K 线 |
+| `experiments/partial_bar_probe.py` | 把未收盘那根加回模型会怎样 | 半根振幅被系统性压缩（30 分钟只有完整 bar 的 67.5%），方向被改变 **13.3%**（[7.6%, 22.2%]） |
+| `experiments/position_recovery.py` | 信号转中性 / 冲击后空仓能否救回仓位 | 548 个 \|冲击\|≥2% 事件里 **281 个（51%）冲击后反弹**；叠加"空仓一根"规则后等权组合 **−19.96% → −33.97%**，即**更差** |
+| `experiments/stop_loss_probe.py` | 盘中止损会不会被假触发打脸 | 触发中 **87–91% 是假触发**（盘中插到止损位、当根收盘又涨回），只有 6–13% 是真该止损 |
+| `experiments/vol_target.py` | 事前缩仓有没有用 | **唯一有效**：目标波动 0.4%/根时，冲击事件锁死损失 −139% → **−94%（−32.6%）**，冲击前平均仓位降到 55%；全周期最大回撤 **−54.66% → −43.98%**，而净收益几乎不变（−19.96% → −20.09%） |
+
+**结论：能"避免"的只有信号层面的东西；仓位层面只能"缩小"和"权衡"。** 止损与收盘后改信号
+都晚一根（冲击那根已经吃满），唯一不依赖预测、也不被假触发惩罚的是**事前波动率缩仓**。
+详见 `README` 的两条通路一节与 `services/live_price.py`。
 
 ## 口径与风险（重要）
 
