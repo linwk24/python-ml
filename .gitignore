@@ -27,3 +27,7 @@ data/*.tmp
 .DS_Store
 .idea/
 .vscode/
+
+# ── 运行时状态（每次 /predict 都会改写，不应入库）──
+# 若入库，服务器上 git pull 会因本地状态被覆盖而失败
+predictions_*.json

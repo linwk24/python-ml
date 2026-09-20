@@ -19,6 +19,7 @@ if PROJECT_ROOT not in sys.path:
 from services.signal_reversal import (  # noqa: E402
     check_signal_reversal,
     effective_trend,
+    format_price,
 )
 
 HOUR_MS = 3600 * 1000
@@ -75,6 +76,25 @@ class TestSignalReversal(unittest.TestCase):
             with self.subTest(move=move):
                 result = check_signal_reversal(bars([100.0, move]), current_trend=1)
                 self.assertFalse(result["triggered"])
+
+    def test_neutral_message_does_not_claim_direction_agreement(self):
+        """中性 + 超过阈值的波动：不能说"与模型方向一致"（中性根本没有方向）"""
+        result = check_signal_reversal(bars([100.0, 98.5]), current_trend=1)
+
+        self.assertFalse(result["triggered"])
+        self.assertNotIn("与模型方向", result["message"])
+        self.assertIn("中性", result["message"])
+        # 用 format_price 自身做期望值，避免"98.50"恰好是"98.5000"子串这种假通过
+        self.assertIn(format_price(100.0), result["message"], "仍要能看到基准价")
+        self.assertIn(format_price(98.5), result["message"], "仍要能看到现价")
+
+    def test_directional_agreement_message_names_the_direction(self):
+        """看涨 + 上涨 / 看跌 + 下跌：消息里点到具体方向，便于肉眼核对"""
+        up = check_signal_reversal(bars([100.0, 102.0]), current_trend=2)
+        self.assertIn("看涨", up["message"])
+
+        down = check_signal_reversal(bars([100.0, 98.0]), current_trend=0)
+        self.assertIn("看跌", down["message"])
 
     def test_baseline_is_recent_bar_not_a_stale_reference(self):
         """核心回归：历史涨幅不能被当成"当前动量"
@@ -145,6 +165,66 @@ class TestSignalReversal(unittest.TestCase):
 
         self.assertIsInstance(result["price_change"], float)
         self.assertEqual(result["price_change_pct"], "+2.00%")
+
+
+class TestMessageShowsPrices(unittest.TestCase):
+    """message 必须能直接看出"用的是哪两个价格" —— 否则线上无法肉眼核对"""
+
+    def test_no_trigger_message_contains_both_prices(self):
+        result = check_signal_reversal(bars([81586.02, 81636.01]), 0)
+
+        # 大额价格带千分位（便于肉眼核对）
+        self.assertIn("81,586.02", result["message"])
+        self.assertIn("81,636.01", result["message"])
+        self.assertIn("→", result["message"])
+
+    def test_triggered_message_contains_both_prices(self):
+        result = check_signal_reversal(bars([100.0, 102.0]), current_trend=0)
+
+        self.assertIn("100.00", result["message"])
+        self.assertIn("102.00", result["message"])
+
+    def test_consistent_message_contains_both_prices(self):
+        result = check_signal_reversal(bars([100.0, 102.0]), current_trend=2)
+
+        self.assertIn("100.00", result["message"])
+        self.assertIn("102.00", result["message"])
+
+    def test_message_prices_match_structured_fields(self):
+        """文案里的数字必须与结构化字段一致（防止两处各写一套）"""
+        result = check_signal_reversal(bars([1234.56, 1240.0]), current_trend=0)
+
+        self.assertIn(format_price(result["baseline_price"]), result["message"])
+        self.assertIn(format_price(result["current_price"]), result["message"])
+        # 且文案里的数字去掉千分位后应与字段原值相等
+        self.assertEqual(
+            result["message"].split("基准 ")[1].split(" →")[0].replace(",", ""),
+            f"{result['baseline_price']:.2f}",
+        )
+
+
+class TestPriceFormatting(unittest.TestCase):
+    """按量级自适应小数位：固定 2 位会把 DOGE 这类价格显示成 0.07，等于没显示"""
+
+    def test_large_price_two_decimals(self):
+        self.assertEqual(format_price(81636.01), "81,636.01")
+
+    def test_mid_price_four_decimals(self):
+        self.assertEqual(format_price(1.0408), "1.0408")
+
+    def test_small_price_six_decimals(self):
+        self.assertEqual(format_price(0.07498), "0.074980")
+
+    def test_small_price_message_is_usable(self):
+        """低价币的文案里必须保留有效数字"""
+        result = check_signal_reversal(bars([0.0740, 0.07498]), current_trend=0)
+
+        self.assertIn("0.074000", result["message"])
+        self.assertIn("0.074980", result["message"])
+        self.assertNotIn("0.07 →", result["message"])
+
+    def test_none_is_handled(self):
+        self.assertEqual(format_price(None), "n/a")
 
 
 class TestEffectiveTrend(unittest.TestCase):

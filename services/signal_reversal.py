@@ -35,6 +35,23 @@ from config import (
 TREND_LABELS = {0: "看跌", 1: "中性", 2: "看涨"}
 
 
+def format_price(price: float) -> str:
+    """按价格量级自适应小数位 —— 固定 2 位会把 DOGE(0.075) 显示成 0.07，等于没显示"""
+    if price is None:
+        return "n/a"
+    p = float(price)
+    if abs(p) >= 100:
+        return f"{p:,.2f}"
+    if abs(p) >= 1:
+        return f"{p:.4f}"
+    return f"{p:.6f}"
+
+
+def _price_span(baseline_price: float, current_price: float) -> str:
+    """基准 -> 现价，便于直接肉眼核对"""
+    return f"基准 {format_price(baseline_price)} → 现价 {format_price(current_price)}"
+
+
 def _bar_open_ms(row: Sequence[Any]) -> Optional[float]:
     try:
         return float(row[0])
@@ -131,6 +148,7 @@ def check_signal_reversal(
     if abs(price_change) <= threshold:
         result["message"] = (
             f"近 {lookback} 根 K 线价差 {price_change:+.2%} 未超过阈值 {threshold:.2%}，维持模型方向"
+            f"（{_price_span(baseline_price, current_price)}）"
         )
         return result
 
@@ -143,9 +161,19 @@ def check_signal_reversal(
         result["reason"] = "reverse_to_bearish"
 
     if corrected is None:
-        result["message"] = (
-            f"近 {lookback} 根 K 线价差 {price_change:+.2%} 与模型方向一致，无需反转"
-        )
+        # 中性没有方向，说“与模型方向一致”会误导（价格明明动了）
+        if current_trend == 1:
+            result["message"] = (
+                f"近 {lookback} 根 K 线价差 {price_change:+.2%} 已超过阈值 {threshold:.2%}，"
+                f"但模型方向为中性，无方向可反转"
+                f"（{_price_span(baseline_price, current_price)}）"
+            )
+        else:
+            result["message"] = (
+                f"近 {lookback} 根 K 线价差 {price_change:+.2%} 与模型方向"
+                f"（{TREND_LABELS.get(current_trend, current_trend)}）一致，无需反转"
+                f"（{_price_span(baseline_price, current_price)}）"
+            )
         return result
 
     result["triggered"] = True
@@ -157,11 +185,13 @@ def check_signal_reversal(
             f"近 {lookback} 根 K 线价差 {price_change:+.2%} 与模型方向"
             f"（{TREND_LABELS.get(current_trend, current_trend)}）矛盾，"
             f"已反转为{TREND_LABELS[corrected]}"
+            f"（{_price_span(baseline_price, current_price)}）"
         )
     else:
         result["message"] = (
             f"近 {lookback} 根 K 线价差 {price_change:+.2%} 与模型方向"
             f"（{TREND_LABELS.get(current_trend, current_trend)}）矛盾，"
-            f"建议反转为{TREND_LABELS[corrected]}（当前配置为仅建议，不覆盖模型输出）"
+            f"建议反转为{TREND_LABELS[corrected]}（当前配置为仅建议，不覆盖模型输出；"
+            f"{_price_span(baseline_price, current_price)}）"
         )
     return result

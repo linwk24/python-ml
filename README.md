@@ -99,9 +99,9 @@ GET /self-learn?symbol=BTCUSDT&interval=1h   # 手动触发一轮自我学习巡
     "triggered": false,
     "applied": false,
     "lookback_bars": 1,
-    "baseline_price": 80846.74,
-    "price_change_pct": "+0.05%",
-    "message": "近 1 根 K 线价差 +0.05% 未超过阈值 0.10%，维持模型方向"
+    "baseline_price": 81586.02,
+    "price_change_pct": "+0.06%",
+    "message": "近 1 根 K 线价差 +0.06% 未超过阈值 0.10%，维持模型方向（基准 81,586.02 → 现价 81,636.01）"
   },
   "feature_weights": [ { "name": "ma_ratio_5_20", "weight": 0.062 } ]
 }
@@ -119,6 +119,19 @@ GET /self-learn?symbol=BTCUSDT&interval=1h   # 手动触发一轮自我学习巡
 | `model_bias` | 趋势状态机判定的模型当前倾向（看涨/看跌/中性）。 |
 | `effective_signal` | **下游应当采用的权威方向**（`source` 标明来自 `model` 还是 `signal_reversal`）。 |
 | `signal_reversal.applied` | 反转建议是否真的覆盖了模型输出（默认配置为 `false`，只给建议）。 |
+| `signal_reversal.message` | 人类可读结论，**含基准价与现价**（按价格量级自适应小数位：BTC 两位带千分位、DOGE 六位），便于直接肉眼核对用的是哪两根 K 线。 |
+
+`signal_reversal.message` 的五种取值（阈值默认 0.10%，回溯默认 1 根，基准恒为**本次预测所用 K 线的上一根**，不是预测记录里的历史价）：
+
+| 情形 | 文案 |
+|---|---|
+| \|价差\| ≤ 阈值 | `… 未超过阈值 0.10%，维持模型方向（基准 X → 现价 Y）` |
+| 模型看涨且价涨 / 看跌且价跌 | `… 与模型方向（看涨/看跌）一致，无需反转（基准 X → 现价 Y）` |
+| 模型**中性**且 \|价差\| > 阈值 | `… 已超过阈值 0.10%，但模型方向为中性，无方向可反转（基准 X → 现价 Y）` |
+| 方向矛盾 + `SIGNAL_REVERSAL_APPLY=false` | `… 与模型方向（…）矛盾，建议反转为…（当前配置为仅建议，不覆盖模型输出；基准 X → 现价 Y）` |
+| 方向矛盾 + `SIGNAL_REVERSAL_APPLY=true` | `… 与模型方向（…）矛盾，已反转为…` |
+
+中性一栏单独列出：中性没有方向可言，早期实现统一说"与模型方向一致"，在价格明显波动时读起来自相矛盾。
 
 ## 预测目标可学性（实验结论）
 
