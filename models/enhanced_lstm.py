@@ -256,6 +256,38 @@ class EnhancedLSTMPredictor:
 
         return matrix
 
+    def batch_directional_scores(
+        self,
+        df: pd.DataFrame,
+        indices: List[int],
+    ) -> Dict[int, float]:
+        """一次前向算出多个 bar 的 directional_score（供状态机回放用）。
+
+        对下标 i 返回"用截至第 i-1 根收盘的窗口"算出的分数 —— 即第 i 根**决策时**
+        可见的分数，与 ``predict(df.iloc[:i])`` 等价，但只做一次批量推理。
+
+        为什么需要它：信号状态机是有状态的，必须按**已收盘 K 线**逐根推进。
+        服务重启后要靠重放历史重建状态，若逐根调用 predict 需要 N 次推理；
+        批量后只需一次（实测 N=240 时 <100ms，见 /predict 的 position_state 块）。
+        """
+        import numpy as np
+
+        if not indices:
+            return {}
+        features_df = self._compute_features(df)
+        M = self.build_input_matrix(features_df)
+        L = SEQUENCE_LENGTH
+        idx = sorted({int(i) for i in indices if L <= int(i) <= len(M)})
+        if not idx:
+            return {}
+        X = np.array([M[i - L:i] for i in idx])
+        probs = self.model.predict(X, verbose=0, batch_size=256)
+        out: Dict[int, float] = {}
+        for k, i in enumerate(idx):
+            p = probs[k]
+            out[i] = 50.0 + 50.0 * (float(p[2]) - float(p[0]))
+        return out
+
     @staticmethod
     def fit_scaler_on(weighted_features: np.ndarray, split_idx: int) -> StandardScaler:
         """只在训练段上拟合标准化器。

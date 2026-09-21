@@ -47,9 +47,21 @@ def format_price(price: float) -> str:
     return f"{p:.6f}"
 
 
-def _price_span(baseline_price: float, current_price: float) -> str:
-    """基准 -> 现价，便于直接肉眼核对"""
-    return f"基准 {format_price(baseline_price)} → 现价 {format_price(current_price)}"
+def _price_span(
+    baseline_price: float,
+    current_price: float,
+    live_price: Optional[float] = None,
+) -> str:
+    """标明这次判定用的是哪两根 K 线。
+
+    ``current_price`` 是**上一根已收盘 K 线**的收盘价，**不是现价** —— 它滞后 0~59 分钟
+    （1h 周期）。此前这里写成"现价"，与响应里 ``live.price`` 的真实现价自相矛盾，
+    所以现在显式标注为"上根收盘"；拿到实时价时再附上，两者一眼可辨。
+    """
+    span = f"基准 {format_price(baseline_price)} → 上根收盘 {format_price(current_price)}"
+    if live_price is not None:
+        span += f"（实时 {format_price(live_price)}）"
+    return span
 
 
 def _bar_open_ms(row: Sequence[Any]) -> Optional[float]:
@@ -91,6 +103,7 @@ def check_signal_reversal(
     lookback_bars: Optional[int] = None,
     threshold: Optional[float] = None,
     apply_reversal: Optional[bool] = None,
+    live_price: Optional[float] = None,
 ) -> Optional[Dict[str, Any]]:
     """基于 K 线的前置动量校验。
 
@@ -100,6 +113,8 @@ def check_signal_reversal(
         lookback_bars: 基准价回溯根数，默认取 config.SIGNAL_REVERSAL_LOOKBACK_BARS
         threshold: 价差阈值，默认取 config.SIGNAL_REVERSAL_THRESHOLD
         apply_reversal: 是否让反转覆盖模型输出，默认取 config.SIGNAL_REVERSAL_APPLY
+        live_price: 实时价（可选）。**只影响 message 文案**，不参与判定 ——
+            判定必须只用已收盘 K 线，否则就变成了拿半根 K 线做决策。
 
     返回 None 表示数据不足、无法判断（调用方应据此跳过该字段）。
     """
@@ -148,7 +163,7 @@ def check_signal_reversal(
     if abs(price_change) <= threshold:
         result["message"] = (
             f"近 {lookback} 根 K 线价差 {price_change:+.2%} 未超过阈值 {threshold:.2%}，维持模型方向"
-            f"（{_price_span(baseline_price, current_price)}）"
+            f"（{_price_span(baseline_price, current_price, live_price)}）"
         )
         return result
 
@@ -166,13 +181,13 @@ def check_signal_reversal(
             result["message"] = (
                 f"近 {lookback} 根 K 线价差 {price_change:+.2%} 已超过阈值 {threshold:.2%}，"
                 f"但模型方向为中性，无方向可反转"
-                f"（{_price_span(baseline_price, current_price)}）"
+                f"（{_price_span(baseline_price, current_price, live_price)}）"
             )
         else:
             result["message"] = (
                 f"近 {lookback} 根 K 线价差 {price_change:+.2%} 与模型方向"
                 f"（{TREND_LABELS.get(current_trend, current_trend)}）一致，无需反转"
-                f"（{_price_span(baseline_price, current_price)}）"
+                f"（{_price_span(baseline_price, current_price, live_price)}）"
             )
         return result
 
@@ -185,13 +200,13 @@ def check_signal_reversal(
             f"近 {lookback} 根 K 线价差 {price_change:+.2%} 与模型方向"
             f"（{TREND_LABELS.get(current_trend, current_trend)}）矛盾，"
             f"已反转为{TREND_LABELS[corrected]}"
-            f"（{_price_span(baseline_price, current_price)}）"
+            f"（{_price_span(baseline_price, current_price, live_price)}）"
         )
     else:
         result["message"] = (
             f"近 {lookback} 根 K 线价差 {price_change:+.2%} 与模型方向"
             f"（{TREND_LABELS.get(current_trend, current_trend)}）矛盾，"
             f"建议反转为{TREND_LABELS[corrected]}（当前配置为仅建议，不覆盖模型输出；"
-            f"{_price_span(baseline_price, current_price)}）"
+            f"{_price_span(baseline_price, current_price, live_price)}）"
         )
     return result

@@ -202,6 +202,45 @@ class TestMessageShowsPrices(unittest.TestCase):
             f"{result['baseline_price']:.2f}",
         )
 
+    def test_never_labels_closed_bar_close_as_current_price(self):
+        """回归：第二根是**上一根已收盘 K 线**的收盘价，不是现价
+
+        线上实测过这条 message 写成"现价 84,653.71"，而同一份响应里
+        live.price 是 84,583.43 —— 两个数都自称"当前价"，自相矛盾。
+        """
+        result = check_signal_reversal(bars([100.0, 102.0]), current_trend=0)
+
+        self.assertNotIn("现价", result["message"])
+        self.assertIn("上根收盘", result["message"])
+
+    def test_live_price_appended_only_when_given(self):
+        """给了实时价才附上；没给时文案仍然完整可读"""
+        without = check_signal_reversal(bars([100.0, 102.0]), current_trend=0)
+        self.assertNotIn("实时", without["message"])
+
+        with_live = check_signal_reversal(bars([100.0, 102.0]), current_trend=0,
+                                          live_price=101.25)
+        self.assertIn("上根收盘 102.00", with_live["message"])
+        self.assertIn(f"实时 {format_price(101.25)}", with_live["message"])
+
+    def test_live_price_does_not_affect_the_decision(self):
+        """实时价只能改文案，绝不能参与判定 —— 否则就是拿半根 K 线做决策"""
+        plain = check_signal_reversal(bars([100.0, 102.0]), current_trend=0)
+        with_live = check_signal_reversal(bars([100.0, 102.0]), current_trend=0,
+                                          live_price=50.0)   # 极端值也不该改变结论
+
+        for key in ("triggered", "applied", "corrected_trend_code", "reason",
+                    "price_change", "price_change_pct", "effective_trend_code"):
+            with self.subTest(key=key):
+                self.assertEqual(plain.get(key), with_live.get(key))
+
+    def test_live_price_none_is_safe(self):
+        """实时价取不到时（None）不能出现 'none' 之类的字样"""
+        result = check_signal_reversal(bars([100.0, 102.0]), current_trend=0,
+                                       live_price=None)
+        self.assertNotIn("实时", result["message"])
+        self.assertNotIn("None", result["message"])
+
 
 class TestPriceFormatting(unittest.TestCase):
     """按量级自适应小数位：固定 2 位会把 DOGE 这类价格显示成 0.07，等于没显示"""

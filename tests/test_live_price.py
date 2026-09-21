@@ -207,3 +207,39 @@ class TestModelPathIsolation(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestHorizonDeclaration(unittest.TestCase):
+    """响应必须声明视界 —— 否则 trend 字段会被读成多日趋势"""
+
+    @classmethod
+    def setUpClass(cls):
+        import config
+        src = open(os.path.join(PROJECT_ROOT, "app", "main.py")).read()
+        fn = src[src.index("def horizon_block"):src.index("# current_price 的口径声明")]
+        cls._ns = {"interval_to_ms": config.interval_to_ms,
+                   "PREDICTION_HORIZON_BARS": config.PREDICTION_HORIZON_BARS}
+        exec(fn, cls._ns)
+
+    def test_reports_bars_and_minutes(self):
+        r = self._ns["horizon_block"]("1h")
+        self.assertEqual(r["prediction_horizon_bars"], 1)
+        self.assertEqual(r["prediction_horizon_minutes"], 60)
+
+    def test_scales_with_interval(self):
+        for iv, minutes in (("1m", 1), ("15m", 15), ("1h", 60), ("4h", 240), ("1d", 1440)):
+            with self.subTest(interval=iv):
+                r = self._ns["horizon_block"](iv)
+                self.assertEqual(r["prediction_horizon_minutes"], minutes)
+
+    def test_scope_text_says_it_is_not_a_trend_view(self):
+        """文案必须明确排除"多日趋势"的误读"""
+        text = self._ns["horizon_block"]("1h")["prediction_scope"]
+        self.assertIn("下一根 K 线", text)
+        self.assertIn("不是多日趋势", text)
+        self.assertIn("60 分钟", text)
+
+    def test_bad_interval_does_not_crash(self):
+        r = self._ns["horizon_block"]("not-an-interval")
+        self.assertEqual(r["prediction_horizon_bars"], 1)
+        self.assertGreater(r["prediction_horizon_minutes"], 0)

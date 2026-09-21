@@ -77,45 +77,53 @@ GET /self-learn?symbol=BTCUSDT&interval=1h   # 手动触发一轮自我学习巡
     "model_type": "enhanced_lstm",
     "feature_dim": 17,
     "prediction": {
-      "trend": "中性",
-      "trend_code": 1,
-      "confidence": 20.52,
+      "trend": "看跌",
+      "trend_code": 0,
+      "confidence": 35.4,
       "confidence_definition": "probability_of_reported_direction",
-      "max_probability": 42.56,
-      "max_probability_class": "看涨",
-      "trend_score": 54.23,
-      "directional_score": 52.82,
-      "required_score": { "bullish": 70.0, "bearish": 30.0 },
-      "model_bias": "中性",
-      "entry_price": 81172.01,
-      "probabilities": { "看跌": 36.93, "中性": 20.51, "看涨": 42.57 },
-      "probabilities_pct": { "看跌": "36.9%", "中性": "20.5%", "看涨": "42.6%" }
+      "max_probability": 35.4,
+      "max_probability_class": "看跌",
+      "trend_score": null,
+      "directional_score": 49,
+      "required_score": null,
+      "model_bias": "看跌",
+      "entry_price": null,
+      "decision_source": "model_argmax",
+      "probabilities": { "看跌": 35.4, "中性": 31.19, "看涨": 33.41 },
+      "probabilities_pct": { "看跌": "35.4%", "中性": "31.2%", "看涨": "33.4%" }
     },
     "model_status": "ready",
     "timestamp": "2026-09-19T09:35:00"
   },
-  "effective_signal": { "trend": "中性", "trend_code": 1, "source": "model" },
+  "effective_signal": { "trend": "看跌", "trend_code": 0, "source": "model" },
   "signal_reversal": {
-    "triggered": false,
+    "triggered": true,
     "applied": false,
     "lookback_bars": 1,
-    "baseline_price": 81586.02,
-    "price_change_pct": "+0.06%",
-    "message": "近 1 根 K 线价差 +0.06% 未超过阈值 0.10%，维持模型方向（基准 81,586.02 → 现价 81,636.01）"
+    "baseline_price": 83760.0,
+    "baseline_bar_ms": 1789977600000,
+    "current_price": 84653.71,
+    "price_change_pct": "+1.07%",
+    "corrected_trend_code": 2,
+    "reason": "reverse_to_bullish",
+    "message": "近 1 根 K 线价差 +1.07% 与模型方向（看跌）矛盾，建议反转为看涨（当前配置为仅建议，不覆盖模型输出；基准 83,760.00 → 上根收盘 84,653.71（实时 84,583.43））"
   },
   "feature_weights": [ { "name": "ma_ratio_5_20", "weight": 0.062 } ],
   "current_price_basis": "last_closed_bar_close",
+  "prediction_horizon_bars": 1,
+  "prediction_horizon_minutes": 60,
+  "prediction_scope": "方向针对**下一根 K 线**（1h × 1 = 60 分钟），不是多日趋势判断",
   "live": {
-    "price": 81248.03,
-    "as_of_ms": 1789931116451,
+    "price": 84583.43,
+    "as_of_ms": 1789985499141,
     "source": "binance_forming_kline",
     "for_model": false,
     "note": "实时价，仅供仓位/风控层使用；模型输入始终只用已收盘 K 线",
     "forming_bar": {
-      "open_ms": 1789930800000, "open": 81036.0, "high": 81121.69,
-      "low": 81036.0, "close": 81248.03, "volume": 24.01,
-      "elapsed_minutes": 5.29, "interval_ms": 3600000,
-      "complete": false, "progress": 0.088
+      "open_ms": 1789984800000, "open": 84653.7, "high": 84816.42,
+      "low": 84500.0, "close": 84583.43, "volume": 380.66,
+      "elapsed_minutes": 11.65, "interval_ms": 3600000,
+      "complete": false, "progress": 0.194
     },
     "error": null,
     "enabled": true
@@ -158,6 +166,46 @@ GET /self-learn?symbol=BTCUSDT&interval=1h   # 手动触发一轮自我学习巡
 （`services.live_price.position_guard()` 就是给这个用的）。用 `LIVE_PRICE_ENABLED=false`
 可以关掉这次额外的 HTTP 往返。
 
+### 信号状态机（`position_state`）
+
+模型每根 K 线独立决策 → 方向翻转频繁 → 换手极高。`services/signal_state_machine.py`
+把"每根重新决策"改成"进入状态后维持，直到被确认打破"：
+
+```
+BULLISH ──分数衰减──> WEAK_BULLISH ──空头确认──> BEARISH
+   │                       │                     │
+   └──跌破失效线───────────┴─────────────────────┘
+                      ↓
+                   NEUTRAL
+```
+
+三层确认：**迟滞双阈值**（进入需越过 `*_enter`、退出回到 `*_exit`，中间保持）+
+**连续确认**（`confirm_bars` 根，过滤单根假信号）+ **价格失效线**
+（进入时记录 `signal_price`，跌破 `signal_price*(1-stop_pct)` 则失效并**锁住**，
+等新信号才解除）。可选叠加 `highest - N*ATR` 移动失效线与 HH/HL→LH/LL 结构确认。
+
+⚠️ **阈值必须按模型自身分数分布标定**。模型 `directional_score` 实测只在
+**47.54~51.88**（p10 48.88 / p50 49.84 / p90 50.86）之间，因为概率极平
+（线上 看跌35.4/中性31.19/看涨33.41）。所以：设计上"P(up) ≥ 60%"永远到不了；
+写死 70/30（旧 `trend_manager` 默认）方向输出恒为 0；写死 55/45 实测 240 根零切换。
+实际使用模型目录 `*_train_meta.json` 里训练期标定的 `calibrated_thresholds`。
+
+**OOS 实测（fit 窗口之后，每币种 2453 根，5bp/边）**：
+
+| 币种 | argmax 净 / 毛 | 状态机 净 / 毛 | 净差 | 切换次数 |
+|---|---|---|---|---|
+| BTCUSDT | −17.59% / −4.01% | **+17.37%** / +21.01% | +34.96% | 152 → 36 |
+| ETHUSDT | −29.79% / −20.79% | **+9.90%** / +10.46% | +39.69% | 120 → 9 |
+| SOLUSDT | −48.89% / −44.27% | −15.56% / −14.49% | +33.34% | 86 → 23 |
+| 等权组合 | −32.09% | **+3.91%** | **+36.00%** | 119 → 23 |
+
+**3/3 币种一致改善，且毛收益同时改善**（不只是省手续费）。复现：
+`experiments/state_machine_validate.py`（走生产代码路径）。
+
+⚠️ 边界：该验证用的是**单一固定模型**（fit 到 2026-06-11）在之后 2453 根上的表现，
+样本偏短；`stop_pct`/`confirm_bars` 是在重叠样本上选的，存在参数选择偏差。
+`SIGNAL_STATE_MACHINE_APPLY` 因此默认 `False` —— 只给建议，不覆盖 `effective_signal`。
+
 ### 字段语义（务必按这里理解）
 
 | 字段 | 含义 |
@@ -165,27 +213,34 @@ GET /self-learn?symbol=BTCUSDT&interval=1h   # 手动触发一轮自我学习巡
 | `prediction.prediction.confidence` | **最终所报方向对应的概率**（0-100）。不是 softmax 最大值 —— 最大值可能落在"中性"类上，那样报出来的数字与方向无关。 |
 | `max_probability` / `max_probability_class` | softmax 最大值及其类别（"模型最倾向哪一类"），独立于所报方向，便于排查。 |
 | `directional_score` | **多空分离度**（50 = 模型完全无方向）。由 `50 + 50*(p_bull - p_bear)` 合成，再叠加价格动量与 S 曲线放大得到用于判定的分数。 |
-| `required_score` | 给出方向所需越过的分数（默认看涨 70 / 看跌 30）。**报"中性"时看这两个字段就知道差多远**。 |
+| `required_score` | 给出方向所需越过的分数（默认看涨 70 / 看跌 30）。**报"中性"时看这两个字段就知道差多远**。⚠️ `TREND_MANAGER_ENABLED=False`（**默认**）时状态机不参与决策，它与 `trend_score`、`entry_price` 一律为 `null`，且 `decision_source` 为 `model_argmax`。上面的示例就是默认配置下的真实输出。 |
 | `probabilities` | 三类概率，**数值**（0-100，和为 100）；展示用字符串见 `probabilities_pct`。 |
 | `model_bias` | 趋势状态机判定的模型当前倾向（看涨/看跌/中性）。 |
 | `effective_signal` | **下游应当采用的权威方向**（`source` 标明来自 `model` 还是 `signal_reversal`）。 |
 | `signal_reversal.applied` | 反转建议是否真的覆盖了模型输出（默认配置为 `false`，只给建议）。 |
-| `signal_reversal.message` | 人类可读结论，**含基准价与现价**（按价格量级自适应小数位：BTC 两位带千分位、DOGE 六位），便于直接肉眼核对用的是哪两根 K 线。 |
+| `signal_reversal.message` | 人类可读结论，标明判定用的是哪两根 K 线：`基准 X → 上根收盘 Y`，有实时价时再附 `（实时 Z）`。按价格量级自适应小数位（BTC 两位带千分位、DOGE 六位）。**`Y` 不是现价**，是上一根已收盘 K 线的收盘价。 |
 | `current_price_basis` | 恒为 `"last_closed_bar_close"`：声明 `current_price` 是**最后一根已收盘 K 线**的收盘价，不是实时价。 |
+| `prediction_horizon_bars` / `_minutes` | **本次预测的视界**：方向只针对未来这么多时间。生产为 `1` 根（1h → 60 分钟）。⚠️ **`prediction.trend` 不是多日趋势判断**，这一点必须在接口层明说 —— 否则"BTC 两小时涨 3.6% 而模型报看跌"会被读成自相矛盾。 |
 | `live.price` | **实时价**（正在走那根的最新成交价）。仅供仓位/风控层使用，`live.for_model` 恒为 `false`。取不到时为 `null`。 |
+| `position_state` | 信号状态机的当前状态：`state`（BULLISH/WEAK_BULLISH/NEUTRAL/WEAK_BEARISH/BEARISH）、`position`（建议仓位）、`signal_price`、`invalidation_price`、`bars_in_state`、`structure`、`latched`、`reason`。**`applied=false`（默认）时仅给建议**，`effective_signal` 仍来自模型。状态只在新的已收盘 K 线出现时变化，同小时内结果被缓存。 |
 | `live.forming_bar` | 正在走的那根的进度：`elapsed_minutes`/`progress`/`complete` 以及 OHLCV 快照。**不要拼进模型输入**（原因见上文实测）。 |
 
 `signal_reversal.message` 的五种取值（阈值默认 0.10%，回溯默认 1 根，基准恒为**本次预测所用 K 线的上一根**，不是预测记录里的历史价）：
 
 | 情形 | 文案 |
 |---|---|
-| \|价差\| ≤ 阈值 | `… 未超过阈值 0.10%，维持模型方向（基准 X → 现价 Y）` |
-| 模型看涨且价涨 / 看跌且价跌 | `… 与模型方向（看涨/看跌）一致，无需反转（基准 X → 现价 Y）` |
-| 模型**中性**且 \|价差\| > 阈值 | `… 已超过阈值 0.10%，但模型方向为中性，无方向可反转（基准 X → 现价 Y）` |
-| 方向矛盾 + `SIGNAL_REVERSAL_APPLY=false` | `… 与模型方向（…）矛盾，建议反转为…（当前配置为仅建议，不覆盖模型输出；基准 X → 现价 Y）` |
+| \|价差\| ≤ 阈值 | `… 未超过阈值 0.10%，维持模型方向（基准 X → 上根收盘 Y）` |
+| 模型看涨且价涨 / 看跌且价跌 | `… 与模型方向（看涨/看跌）一致，无需反转（基准 X → 上根收盘 Y）` |
+| 模型**中性**且 \|价差\| > 阈值 | `… 已超过阈值 0.10%，但模型方向为中性，无方向可反转（基准 X → 上根收盘 Y）` |
+| 方向矛盾 + `SIGNAL_REVERSAL_APPLY=false` | `… 与模型方向（…）矛盾，建议反转为…（当前配置为仅建议，不覆盖模型输出；基准 X → 上根收盘 Y）` |
 | 方向矛盾 + `SIGNAL_REVERSAL_APPLY=true` | `… 与模型方向（…）矛盾，已反转为…` |
 
-中性一栏单独列出：中性没有方向可言，早期实现统一说"与模型方向一致"，在价格明显波动时读起来自相矛盾。
+拿到实时价时，末尾会再附一个 `（实时 Z）`，`Z` 来自 `live.price`。**`Y` 是上一根已收盘
+K 线的收盘价，不是现价**（滞后 0~59 分钟）—— 早期文案把它写成"现价"，与同一份响应里的
+`live.price` 自相矛盾（线上实测：文案"现价 84,653.71" vs `live.price` 84,583.43），现已改为"上根收盘"。
+实时价**只影响文案**，不参与判定；判定只用已收盘 K 线。
+
+中性那一栏单独列出：中性没有方向可言，早期实现统一说"与模型方向一致"，在价格明显波动时读起来自相矛盾。
 
 ## 预测目标可学性（实验结论）
 

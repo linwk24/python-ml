@@ -43,6 +43,43 @@ EXCHANGE_CONFIG = {
     },
 }
 
+# ============== 信号状态机（services/signal_state_machine.py）==============
+# 把"每根 K 线重新决策"改成"进入一个状态后维持，直到被确认打破"：迟滞双阈值 +
+# 连续确认 + 价格失效线 + 结构确认。设计目标是**降换手**（实测瓶颈：BTC 换手 2190 次，
+# 5bp 下毛 +138% 变净 −20%）。
+#
+# 默认 SIGNAL_STATE_MACHINE_APPLY=False：只在响应里给建议，不覆盖 effective_signal。
+# 理由与 SIGNAL_REVERSAL_APPLY 相同 —— 它虽然机制清楚，但只在本地模型的单一 OOS
+# 样本上测过（18 个规则里没有一条在三个币种上一致优于基准），未经多种子/
+# 滚动前向验证前不做静默改写。
+SIGNAL_STATE_MACHINE_ENABLED = True
+SIGNAL_STATE_MACHINE_APPLY = False
+SIGNAL_STATE_MACHINE_REBUILD_BARS = 240   # 冷启动/每请求重放多少根已收盘 K 线
+
+# 状态机参数（阈值作用在 directional_score 上，50 = 完全无方向）。
+#
+# ⚠️ 阈值**必须按模型自身分数分布标定，不能写死**。实测（BTC train_meta）该分数
+# 只在 47.54~51.88 之间波动（p10 48.88 / p50 49.84 / p90 50.86），因为模型概率极平
+# （线上实测 看跌35.4/中性31.19/看涨33.41，最大概率 ~44%，bull-bear 差最多 ±1.9 分）。
+# 因此：
+#   · 设计稿的"P(up) >= 60%"在本模型上永远到不了；
+#   · 写死 70/30（旧 trend_manager 默认）方向输出恒为 0，准确率掉到 32.23%；
+#   · 写死 55/45 同样永不触发（实测 240 根零切换）。
+# 下面给的是**兜底值**；实际优先使用模型目录 *_train_meta.json 里训练期标定出的
+# `calibrated_thresholds`（见 app.build_position_state），与旧状态机的修复思路一致。
+STATE_MACHINE_PARAMS = {
+    "bull_enter": 50.86,     # 分数 >= 该值 -> 看涨（兜底值 = p90）
+    "bull_exit": 49.84,      # 分数 <  该值 -> 降级为 WEAK_BULLISH（仍持多）
+    "bear_enter": 48.88,     # 分数 <= 该值 -> 看跌（兜底值 = p10）
+    "bear_exit": 49.84,      # 分数 >  该值 -> 降级为 WEAK_BEARISH（仍持空）
+    "confirm_bars": 3,       # 方向切换需连续确认根数
+    "stop_pct": 0.03,        # signal_price*(1-stop_pct) 失效线；None 关闭
+    "trail_atr_mult": 0.0,   # highest - N*ATR 移动失效线；0 = 关闭（实测有害）
+    "enable_structure": True,
+}
+# 是否用训练期标定阈值覆盖上面的兜底值
+STATE_MACHINE_USE_CALIBRATED = True
+
 # ============== 实时价通路（仓位/风控层专用）==============
 # 与模型输入**完全分离**的第二条通路。模型只用已收盘 K 线（drop_unclosed=True），
 # 这条通路提供正在走的那根的实时价，供仓位层算未实现盈亏 / 判止损。
