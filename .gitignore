@@ -3,9 +3,14 @@ __pycache__/
 .venv/
 venv/
 .env
-*.log
 /models/models/
-logs/
+# 不上传预测结果
+predictions_*.json
+# 日志文件不上传
+logs/*.log
+# 保留 logs 目录
+!logs/.gitkeep
 .idea/
 .vscode/
 .DS_Store
+predictions_*.json

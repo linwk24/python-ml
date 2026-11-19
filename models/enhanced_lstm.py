@@ -296,11 +296,35 @@ class EnhancedLSTMPredictor:
             verbose=1
         )
         
-        # 保存
+        
+        # 保存模型和特征权重
         self.save_model()
         self._save_weights()
-        
+
+        # 自动同步到 Cloudflare R2
+        try:
+            from services.model_storage import upload_models
+
+            result = upload_models()
+
+            if result["status"] == "success":
+                print(
+                    f"Cloudflare R2 同步成功："
+                    f"{result['uploaded']} 个模型文件"
+                )
+            else:
+                print("Cloudflare R2 未配置，保留本地模型")
+
+        except Exception as exc:
+            print(f"Cloudflare R2 上传失败：{exc}")
+
+            # 生产环境要求持久化时，不允许静默忽略
+            if os.getenv("R2_REQUIRED", "false").lower() == "true":
+                raise
+
         return history
+
+        
     
     def predict(self, recent_klines: list) -> dict:
         """预测趋势"""
