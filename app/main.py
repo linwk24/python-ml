@@ -22,7 +22,33 @@ app = FastAPI(
     title="LSTM 趋势预测 API",
     description="加密货币趋势预测服务（集成自我学习微调）",
     version="2.1.0"
+    
 )
+
+
+@app.on_event("startup")
+def restore_models_from_r2():
+    """Render 启动时恢复持久化模型"""
+
+    print("=" * 50)
+    print("正在检查 Cloudflare R2 模型存储...")
+
+    try:
+        from services.model_storage import download_models
+
+        downloaded = download_models()
+
+        print(
+            f"模型恢复完成：{downloaded} 个文件"
+        )
+
+    except Exception as exc:
+        print(f"模型恢复失败：{exc}")
+
+        if os.getenv("R2_REQUIRED", "false").lower() == "true":
+            raise
+
+    print("=" * 50)
 
 # CORS 配置
 app.add_middleware(
