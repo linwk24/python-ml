@@ -1,0 +1,17 @@
+[project]
+sub_id = "d4031f38"
+name = "python-ml"
+requires = ["python-3.12"]
+project_type = "backend"
+entrypoint = "app/main.py"
+
+[preview]
+preview_enable = "disabled"
+
+[deploy]
+build = ["bash", "scripts/setup.sh"]
+run = ["bash", "scripts/http_run.sh", "-p", "5000"]
+
+[deploy.profile]
+kind = "service"
+flavor = "web"
